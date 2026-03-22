@@ -1,7 +1,7 @@
 #import <UIKit/UIKit.h>
 
 /*
- * MonsterMod v2: Instant Rewards + Login Bypass
+ * MonsterMod v2.1: Fix Apple Sign In Protocol
  */
 
 @interface ISRewardedVideoManager : NSObject
@@ -30,14 +30,21 @@
 }
 %end
 
-// --- Hook Apple Sign In Bypass ---
+// --- Apple Sign In Protocol ---
+@protocol ASAuthorizationControllerDelegate <NSObject>
+@optional
+- (void)authorizationController:(id)controller didCompleteWithAuthorization:(id)authorization;
+- (void)authorizationController:(id)controller didCompleteWithError:(id)error;
+@end
+
 @interface ASAuthorizationController : NSObject
 - (id)delegate;
 @end
 
+// --- Hook Apple Sign In Bypass ---
 %hook ASAuthorizationController
 - (void)performRequests {
-    // Attempt to bypass by calling delegate immediately
+    // Attempt to bypass by calling delegate success immediately
     id delegate = [self delegate];
     if (delegate && [delegate respondsToSelector:@selector(authorizationController:didCompleteWithAuthorization:)]) {
         [delegate authorizationController:self didCompleteWithAuthorization:nil];
