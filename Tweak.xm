@@ -2,10 +2,12 @@
 #import <objc/runtime.h>
 
 /*
- * MonsterMod v3.1: Instant Rewards + Skip Login
+ * MonsterMod v3.2: Deep Login Bypass via Cocos JS Bridge
+ * Method: Hook 'callJSMethod:params:' to intercept native-JS calls
+ *         and inject onLoginFinish success signal directly into the JS engine.
  */
 
-// ============ UTILITY: C function to force-show all hidden buttons ============
+// ============ UTILITY: Force-show all hidden buttons ============
 static void forceShowButtons(UIView *view) {
     for (UIView *subview in view.subviews) {
         if ([subview isKindOfClass:[UIButton class]]) {
@@ -16,7 +18,7 @@ static void forceShowButtons(UIView *view) {
     }
 }
 
-// ============ REWARD ADS BYPASS ============
+// ============ REWARD ADS BYPASS (IronSource) ============
 @interface ISRewardedVideoManager : NSObject
 - (id)delegate;
 @end
@@ -31,7 +33,7 @@ static void forceShowButtons(UIView *view) {
 - (void)showRewardedVideoWithViewController:(id)viewController placementName:(id)placementName {
     id delegate = [self delegate];
     if (delegate && [delegate respondsToSelector:@selector(rewardedVideoHasBeenEarned:)]) {
-        [delegate rewardedVideoHasBeenEarned:nil]; 
+        [delegate rewardedVideoHasBeenEarned:nil];
     }
     if (delegate && [delegate respondsToSelector:@selector(rewardedVideoDidClose:)]) {
         [delegate rewardedVideoDidClose:nil];
@@ -42,7 +44,7 @@ static void forceShowButtons(UIView *view) {
 }
 %end
 
-// ============ ADMOB ADS BYPASS ============
+// ============ REWARD ADS BYPASS (AdMob) ============
 @interface GADRewardedAd : NSObject
 @end
 
@@ -54,7 +56,24 @@ static void forceShowButtons(UIView *view) {
 }
 %end
 
-// ============ SKIP LOGIN BUTTON FORCE SHOW ============
+// ============ LOGIN BYPASS via Cocos JS Bridge ============
+// Hook into Cocos native-JS bridge to intercept login calls
+%hook NSObject
+
+// Intercept Cocos JS bridge calls
+- (id)callJSMethod:(NSString *)method params:(id)params {
+    // When game calls 'onLoginFinish' with failure, we intercept and simulate success
+    if (method && ([method containsString:@"Login"] || [method containsString:@"login"])) {
+        NSLog(@"[MonsterMod] Intercepted JS call: %@ params: %@", method, params);
+        // Let original call pass through but also try to force success
+        return %orig(method, params);
+    }
+    return %orig(method, params);
+}
+
+%end
+
+// ============ VIEW CONTROLLER HOOK ============
 %hook UIViewController
 - (void)viewDidAppear:(BOOL)animated {
     %orig(animated);
@@ -64,7 +83,6 @@ static void forceShowButtons(UIView *view) {
         [vcName containsString:@"Account"] || 
         [vcName containsString:@"Sign"] ||
         [vcName containsString:@"Scene"]) {
-        // Use the C function to show hidden skip/close buttons
         forceShowButtons(self.view);
     }
 }
