@@ -13,6 +13,8 @@ jobs:
       
       - name: Setup Theos
         run: |
+          # Install ldid via brew
+          brew install ldid
           git clone --recursive https://github.com/theos/theos.git ~/theos
           # Ensure sdks dir is clean
           rm -rf ~/theos/sdks
