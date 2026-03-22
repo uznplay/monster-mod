@@ -1,0 +1,9 @@
+Package: com.openew.monster.mod
+Name: MonsterMod
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: Instant Rewards Mod for Monsters Must Die
+Maintainer: Modder
+Author: Modder
+Section: Tweaks
