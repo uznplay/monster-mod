@@ -14,17 +14,12 @@ jobs:
       - name: Setup Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git ~/theos
-          # Download SDK 14.5 (Commonly used)
-          curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz
-          mkdir -p ~/theos/sdks
-          tar -xf iPhoneOS14.5.sdk.tar.xz -C ~/theos/sdks
-          rm iPhoneOS14.5.sdk.tar.xz
+          git clone --depth 1 https://github.com/theos/sdks.git ~/theos/sdks
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
       - name: Build Tweak
         run: |
           export THEOS=~/theos
-          # Compile to .dylib only
           make FINALPACKAGE=1
           
       - name: Prepare Artifact
